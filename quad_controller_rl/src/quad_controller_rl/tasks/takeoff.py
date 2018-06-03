@@ -12,8 +12,8 @@ class Takeoff(BaseTask):
         # State space: <position_x, .._y, .._z, orientation_x, .._y, .._z, .._w>
         cube_size = 300.0  # env is cube_size x cube_size x cube_size
         self.observation_space = spaces.Box(
-            np.array([- cube_size / 2, - cube_size / 2,       0.0, -1.0, -1.0, -1.0, -1.0]),
-            np.array([  cube_size / 2,   cube_size / 2, cube_size,  1.0,  1.0,  1.0,  1.0]))
+            np.array([- cube_size / 2.0, - cube_size / 2.0,       0.0, -1.0, -1.0, -1.0, -1.0]),
+            np.array([  cube_size / 2.0,   cube_size / 2.0, cube_size,  1.0,  1.0,  1.0,  1.0]))
         #print("Takeoff(): observation_space = {}".format(self.observation_space))  # [debug]
 
         # Action space: <force_x, .._y, .._z, torque_x, .._y, .._z>
@@ -46,7 +46,9 @@ class Takeoff(BaseTask):
 
         # Compute reward / penalty and check if this episode is complete
         done = False
-        reward = -min(abs(self.target_z - pose.position.z), 20.0)  # reward = zero for matching target z, -ve as you go farther, upto -20
+        reward = -min(2.*abs(self.target_z - pose.position.z), 20.0)  # reward = zero for matching target z, -ve as you go farther, upto -20
+        magnitude_rotation = np.sum(np.absolute([angular_velocity.x, angular_velocity.y]))
+        reward += -min(abs(0-magnitude_rotation),10.0) # penalize angular velocity
         if pose.position.z >= self.target_z:  # agent has crossed the target height
             reward += 10.0  # bonus reward
             done = True
